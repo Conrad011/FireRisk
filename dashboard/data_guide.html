@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FireRisk — Guia dos Dados</title>
+  <style>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --surface2:  #232736;
+      --border:    #2e3248;
+      --accent:    #e8531a;
+      --accent2:   #f5a623;
+      --green:     #2ecc71;
+      --blue:      #4a9eff;
+      --purple:    #9b59b6;
+      --text:      #e2e8f0;
+      --muted:     #8892a4;
+      --code-bg:   #141720;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, #1a0a02 0%, #2d1205 40%, #1a1d27 100%);
+      border-bottom: 2px solid var(--accent);
+      padding: 3rem 2rem 2.5rem;
+      text-align: center;
+    }
+    header .fire { font-size: 3.5rem; }
+    header h1 { font-size: 2.4rem; font-weight: 700; color: var(--accent); margin: .4rem 0 .2rem; }
+    header p  { color: var(--muted); font-size: 1rem; }
+
+    /* ── LAYOUT ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem; }
+
+    /* ── NAV ── */
+    nav {
+      display: flex; gap: .75rem; flex-wrap: wrap; justify-content: center;
+      margin-bottom: 3rem;
+    }
+    nav a {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 999px; padding: .45rem 1.2rem;
+      color: var(--muted); text-decoration: none; font-size: .85rem;
+      transition: .2s;
+    }
+    nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── SECTION ── */
+    section { margin-bottom: 4rem; }
+    section h2 {
+      font-size: 1.5rem; font-weight: 700;
+      display: flex; align-items: center; gap: .6rem;
+      padding-bottom: .75rem;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+    section h2 .badge {
+      font-size: .7rem; font-weight: 600; letter-spacing: .08em;
+      padding: .2rem .6rem; border-radius: 4px; text-transform: uppercase;
+    }
+    .badge-climate  { background: #1a3a5c; color: var(--blue); }
+    .badge-firms    { background: #3a1a0a; color: var(--accent); }
+    .badge-veg      { background: #0e2a1a; color: var(--green); }
+    .badge-main     { background: #221a3a; color: var(--purple); }
+
+    section p { color: var(--muted); margin-bottom: 1rem; }
+    section h3 { font-size: 1rem; font-weight: 600; color: var(--text); margin: 1.5rem 0 .6rem; }
+
+    /* ── CARDS GRID ── */
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1.1rem 1.3rem;
+    }
+    .card .label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+    .card .field { font-size: 1rem; font-weight: 600; color: var(--text); margin: .25rem 0; }
+    .card .desc  { font-size: .82rem; color: var(--muted); }
+    .card .unit  { font-size: .75rem; color: var(--accent2); margin-top: .2rem; }
+
+    /* ── TABLE ── */
+    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    thead tr { background: var(--surface2); }
+    th { padding: .75rem 1rem; text-align: left; color: var(--muted); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+    td { padding: .65rem 1rem; border-top: 1px solid var(--border); }
+    tr:hover td { background: var(--surface2); }
+    .val-hi  { color: #ff6b6b; font-weight: 600; }
+    .val-med { color: var(--accent2); font-weight: 600; }
+    .val-ok  { color: var(--green); font-weight: 600; }
+    .val-na  { color: var(--muted); font-style: italic; }
+
+    /* ── CODE ── */
+    pre {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1.2rem 1.4rem;
+      overflow-x: auto; font-size: .82rem; line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    code { font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; }
+    .kw   { color: #c792ea; }
+    .fn   { color: var(--blue); }
+    .str  { color: #c3e88d; }
+    .cm   { color: #546e7a; font-style: italic; }
+    .num  { color: var(--accent2); }
+    .cls  { color: #ffcb6b; }
+
+    /* ── CALLOUT ── */
+    .callout {
+      border-left: 4px solid var(--accent2);
+      background: var(--surface);
+      border-radius: 0 8px 8px 0;
+      padding: .9rem 1.2rem;
+      margin-bottom: 1.5rem;
+      font-size: .9rem;
+      color: var(--muted);
+    }
+    .callout strong { color: var(--text); }
+
+    /* ── FLOW ── */
+    .flow {
+      display: flex; flex-direction: column; gap: 0;
+      margin-bottom: 1.5rem;
+    }
+    .flow-step {
+      display: flex; align-items: flex-start; gap: 1rem;
+      position: relative; padding-bottom: 1.5rem;
+    }
+    .flow-step:last-child { padding-bottom: 0; }
+    .flow-step:not(:last-child)::before {
+      content: '';
+      position: absolute; left: 19px; top: 40px;
+      width: 2px; bottom: 0;
+      background: var(--border);
+    }
+    .step-dot {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .9rem;
+      border: 2px solid var(--border);
+      background: var(--surface);
+    }
+    .step-body { flex: 1; }
+    .step-body strong { color: var(--text); font-size: .95rem; }
+    .step-body p { font-size: .85rem; color: var(--muted); margin: .15rem 0 0; }
+
+    /* ── OUTPUT BOX ── */
+    .output {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1.2rem 1.4rem;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: .8rem; line-height: 1.8;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+    }
+    .out-label { color: var(--muted); }
+    .out-val   { color: var(--green); }
+    .out-key   { color: var(--blue); }
+    .out-hi    { color: #ff6b6b; }
+
+    /* ── API PILL ── */
+    .api-pill {
+      display: inline-block;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; padding: .25rem .75rem;
+      font-size: .78rem; color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .api-pill span { color: var(--blue); font-family: monospace; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center; padding: 2rem;
+      color: var(--muted); font-size: .8rem;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="fire">🔥</div>
+  <h1>FireRisk</h1>
+  <p>Guia completo dos dados coletados — Climate · FIRMS · Vegetation</p>
+</header>
+
+<div class="container">
+
+  <nav>
+    <a href="#visao-geral">Visão Geral</a>
+    <a href="#climate">Climate</a>
+    <a href="#firms">FIRMS</a>
+    <a href="#vegetation">Vegetation</a>
+    <a href="#main">main.py</a>
+    <a href="#exemplo-completo">Exemplo Completo</a>
+  </nav>
+
+  <!-- ══════════════════════════════════════════
+       VISÃO GERAL
+  ══════════════════════════════════════════ -->
+  <section id="visao-geral">
+    <h2>🗺️ Visão Geral <span class="badge badge-main">Sistema</span></h2>
+    <p>O FireRisk combina três fontes de dados independentes para montar um perfil de risco de incêndio para qualquer coordenada dentro da Amazônia Legal. Cada coletor é responsável por um domínio específico:</p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="label">Coletor 1</div>
+        <div class="field">🌡️ Climate</div>
+        <div class="desc">Temperatura, chuva e vento dos últimos 30 dias via Open-Meteo</div>
+      </div>
+      <div class="card">
+        <div class="label">Coletor 2</div>
+        <div class="field">🛰️ FIRMS</div>
+        <div class="desc">Focos de incêndio ativos detectados pelo satélite VIIRS/Suomi NPP (NASA)</div>
+      </div>
+      <div class="card">
+        <div class="label">Coletor 3</div>
+        <div class="field">🌿 Vegetation</div>
+        <div class="desc">Município, UF e bioma de qualquer ponto via IBGE GeoJSON</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Ponto de entrada único:</strong> <code>src/main.py → coletar_dados(lat, lon)</code> orquestra os três coletores e retorna um dicionário consolidado com todos os dados.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       CLIMATE
+  ══════════════════════════════════════════ -->
+  <section id="climate">
+    <h2>🌡️ Climate <span class="badge badge-climate">Open-Meteo</span></h2>
+
+    <div class="api-pill">API: <span>api.open-meteo.com/v1/forecast</span> &nbsp;·&nbsp; Gratuita, sem chave</div>
+
+    <p>Retorna um <strong>DataFrame pandas</strong> com 31 linhas (hoje + últimos 30 dias). Cada linha representa um dia completo de dados climáticos para a coordenada informada.</p>
+
+    <h3>Colunas retornadas</h3>
+    <div class="cards">
+      <div class="card">
+        <div class="label">Coluna</div>
+        <div class="field">date</div>
+        <div class="desc">Data do registro</div>
+        <div class="unit">tipo: datetime64</div>
+      </div>
+      <div class="card">
+        <div class="label">Coluna</div>
+        <div class="field">temperature_max</div>
+        <div class="desc">Temperatura máxima do dia</div>
+        <div class="unit">unidade: °C</div>
+      </div>
+      <div class="card">
+        <div class="label">Coluna</div>
+        <div class="field">precipitation</div>
+        <div class="desc">Precipitação acumulada no dia</div>
+        <div class="unit">unidade: mm</div>
+      </div>
+      <div class="card">
+        <div class="label">Coluna</div>
+        <div class="field">windspeed</div>
+        <div class="desc">Velocidade máxima do vento</div>
+        <div class="unit">unidade: km/h</div>
+      </div>
+    </div>
+
+    <h3>Exemplo de saída — coordenada Manaus (-3.1190, -60.0217)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>date</th><th>temperature_max</th><th>precipitation</th><th>windspeed</th><th>risco associado</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>2025-04-05</td><td class="val-ok">29.4</td><td class="val-ok">18.2</td><td class="val-ok">12.3</td><td class="val-ok">Baixo</td></tr>
+          <tr><td>2025-04-10</td><td class="val-med">33.1</td><td class="val-ok">2.0</td><td class="val-med">21.0</td><td class="val-med">Moderado</td></tr>
+          <tr><td>2025-04-18</td><td class="val-hi">37.6</td><td class="val-ok">0.0</td><td class="val-hi">34.5</td><td class="val-hi">Alto</td></tr>
+          <tr><td>2025-04-25</td><td class="val-med">34.2</td><td class="val-na">NaN</td><td class="val-med">18.7</td><td class="val-med">Moderado</td></tr>
+          <tr><td>2025-05-05</td><td class="val-ok">28.9</td><td class="val-ok">31.4</td><td class="val-ok">9.1</td><td class="val-ok">Baixo</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <strong>NaN em precipitation:</strong> ocorre quando a API ainda não tem o valor processado para o dia atual. Trate com <code>df["precipitation"].fillna(0)</code> ou descarte a linha mais recente.
+    </div>
+
+    <h3>Como usar</h3>
+    <pre><code><span class="kw">from</span> collectors.Climate <span class="kw">import</span> <span class="cls">Climate</span>
+
+c = <span class="cls">Climate</span>()
+df = c.<span class="fn">get_data</span>(lat=<span class="num">-3.1190</span>, lon=<span class="num">-60.0217</span>)
+
+<span class="cm"># temperatura média dos últimos 30 dias</span>
+print(df[<span class="str">"temperature_max"</span>].mean())
+
+<span class="cm"># dias sem chuva (risco de seca)</span>
+dias_secos = (df[<span class="str">"precipitation"</span>] == <span class="num">0</span>).sum()
+print(f<span class="str">"Dias sem chuva: {dias_secos}"</span>)</code></pre>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       FIRMS
+  ══════════════════════════════════════════ -->
+  <section id="firms">
+    <h2>🛰️ FIRMS <span class="badge badge-firms">NASA</span></h2>
+
+    <div class="api-pill">API: <span>firms.modaps.eosdis.nasa.gov/api/area/csv</span> &nbsp;·&nbsp; Chave gratuita: <code>NASA_FIRMS_KEY</code></div>
+
+    <p>Retorna um <strong>DataFrame pandas</strong> com todos os focos de incêndio detectados pelo satélite <strong>VIIRS/Suomi NPP</strong> na Amazônia Legal nos últimos N dias. Cada linha é um foco individual.</p>
+
+    <h3>Área de cobertura fixa — Amazônia Legal</h3>
+    <div class="callout">
+      Bounding box: <code>longitude -74° a -44° · latitude -18° a 5°</code> — cobre AM, PA, MT, RO, AC, RR, AP, MA e parte do TO.
+    </div>
+
+    <h3>Principais colunas retornadas</h3>
+    <div class="cards">
+      <div class="card">
+        <div class="label">Localização</div>
+        <div class="field">latitude / longitude</div>
+        <div class="desc">Coordenadas do centro do pixel onde o foco foi detectado</div>
+        <div class="unit">graus decimais (WGS84)</div>
+      </div>
+      <div class="card">
+        <div class="label">Temperatura</div>
+        <div class="field">bright_ti4</div>
+        <div class="desc">Temperatura de brilho da banda I4 do VIIRS (4 µm)</div>
+        <div class="unit">Kelvin — fogo ativo &gt; 330 K</div>
+      </div>
+      <div class="card">
+        <div class="label">Temperatura</div>
+        <div class="field">bright_ti5</div>
+        <div class="desc">Temperatura de brilho da banda I5 (11 µm) — referência ambiente</div>
+        <div class="unit">Kelvin</div>
+      </div>
+      <div class="card">
+        <div class="label">Potência</div>
+        <div class="field">frp</div>
+        <div class="desc">Fire Radiative Power — energia irradiada pelo foco</div>
+        <div class="unit">MW (megawatts)</div>
+      </div>
+      <div class="card">
+        <div class="label">Tempo</div>
+        <div class="field">acq_date / acq_time</div>
+        <div class="desc">Data e hora UTC da passagem do satélite</div>
+        <div class="unit">YYYY-MM-DD / HHMM UTC</div>
+      </div>
+      <div class="card">
+        <div class="label">Confiança</div>
+        <div class="field">confidence</div>
+        <div class="desc">Confiabilidade da detecção: <strong>l</strong>ow, <strong>n</strong>ominal, <strong>h</strong>igh</div>
+        <div class="unit">l / n / h</div>
+      </div>
+      <div class="card">
+        <div class="label">Pixel</div>
+        <div class="field">scan / track</div>
+        <div class="desc">Dimensões do pixel no solo (variam com o ângulo de varredura)</div>
+        <div class="unit">km</div>
+      </div>
+      <div class="card">
+        <div class="label">Período</div>
+        <div class="field">daynight</div>
+        <div class="desc">Passagem diurna (D) ou noturna (N)</div>
+        <div class="unit">D / N</div>
+      </div>
+    </div>
+
+    <h3>Exemplo de saída — últimos 5 dias</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>latitude</th><th>longitude</th><th>bright_ti4</th><th>frp</th><th>confidence</th><th>acq_date</th><th>acq_time</th><th>daynight</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>-3.4521</td><td>-62.1038</td><td class="val-hi">412.3</td><td class="val-hi">87.4</td><td class="val-ok">h</td><td>2025-05-03</td><td>1742</td><td>D</td></tr>
+          <tr><td>-4.8801</td><td>-55.2314</td><td class="val-med">356.7</td><td class="val-med">23.1</td><td class="val-ok">n</td><td>2025-05-03</td><td>0612</td><td>N</td></tr>
+          <tr><td>-9.1122</td><td>-63.4450</td><td class="val-hi">389.2</td><td class="val-hi">145.0</td><td class="val-ok">h</td><td>2025-05-04</td><td>1830</td><td>D</td></tr>
+          <tr><td>-1.9923</td><td>-49.8801</td><td class="val-ok">331.1</td><td class="val-ok">4.7</td><td class="val-na">l</td><td>2025-05-04</td><td>0544</td><td>N</td></tr>
+          <tr><td>-6.3341</td><td>-58.7712</td><td class="val-hi">401.8</td><td class="val-hi">210.5</td><td class="val-ok">h</td><td>2025-05-05</td><td>1756</td><td>D</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Interpretando os valores-chave</h3>
+    <div class="cards">
+      <div class="card">
+        <div class="label">bright_ti4</div>
+        <div class="field">&lt; 330 K</div>
+        <div class="desc" style="color:var(--green)">Superfície normal — sem fogo</div>
+      </div>
+      <div class="card">
+        <div class="label">bright_ti4</div>
+        <div class="field">330 – 380 K</div>
+        <div class="desc" style="color:var(--accent2)">Foco de baixa intensidade</div>
+      </div>
+      <div class="card">
+        <div class="label">bright_ti4</div>
+        <div class="field">&gt; 380 K</div>
+        <div class="desc" style="color:#ff6b6b">Foco intenso / ativo</div>
+      </div>
+      <div class="card">
+        <div class="label">frp</div>
+        <div class="field">&gt; 100 MW</div>
+        <div class="desc" style="color:#ff6b6b">Incêndio de grande porte</div>
+      </div>
+    </div>
+
+    <h3>Como usar</h3>
+    <pre><code><span class="kw">from</span> collectors.Firms <span class="kw">import</span> <span class="cls">Firms</span>
+
+f = <span class="cls">Firms</span>()                        <span class="cm"># lê NASA_FIRMS_KEY do ambiente</span>
+df = f.<span class="fn">get_focos</span>(dias=<span class="num">7</span>)
+
+<span class="cm"># apenas focos com alta confiança</span>
+df_alto = df[df[<span class="str">"confidence"</span>] == <span class="str">"h"</span>]
+
+<span class="cm"># focos com FRP > 100 MW (grandes incêndios)</span>
+df_grande = df[df[<span class="str">"frp"</span>] > <span class="num">100</span>]
+
+print(f<span class="str">"Total de focos: {len(df)}"</span>)
+print(f<span class="str">"Alta confiança: {len(df_alto)}"</span>)</code></pre>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       VEGETATION
+  ══════════════════════════════════════════ -->
+  <section id="vegetation">
+    <h2>🌿 Vegetation <span class="badge badge-veg">IBGE</span></h2>
+
+    <div class="api-pill">APIs: <span>servicodados.ibge.gov.br</span> &nbsp;·&nbsp; Gratuitas, sem chave</div>
+
+    <p>O coletor de vegetação faz três coisas distintas: baixa o mapa vetorial dos municípios brasileiros, identifica o município de uma coordenada e classifica o bioma. Internamente usa <strong>GeoPandas</strong> para operações espaciais.</p>
+
+    <h3>Métodos e o que retornam</h3>
+
+    <div class="cards">
+      <div class="card">
+        <div class="label">Método</div>
+        <div class="field">download()</div>
+        <div class="desc">Baixa o GeoJSON dos ~5570 municípios do Brasil e salva em <code>data/raw/municipios.geojson</code></div>
+        <div class="unit">retorna: None (salva arquivo)</div>
+      </div>
+      <div class="card">
+        <div class="label">Método</div>
+        <div class="field">read_geo_data()</div>
+        <div class="desc">Lê o GeoJSON local e enriquece com nome e UF via API IBGE</div>
+        <div class="unit">retorna: GeoDataFrame</div>
+      </div>
+      <div class="card">
+        <div class="label">Método</div>
+        <div class="field">get_municipio(gdf, lat, lon)</div>
+        <div class="desc">Dado um GDF e uma coordenada, retorna o município que contém o ponto</div>
+        <div class="unit">retorna: dict ou None</div>
+      </div>
+      <div class="card">
+        <div class="label">Método</div>
+        <div class="field">get_bioma(uf)</div>
+        <div class="desc">Dado a sigla da UF, retorna o bioma predominante</div>
+        <div class="unit">retorna: string</div>
+      </div>
+    </div>
+
+    <h3>Estrutura do GeoDataFrame (<code>read_geo_data</code>)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>codarea</th><th>nome</th><th>uf</th><th>geometry</th></tr></thead>
+        <tbody>
+          <tr><td>1302603</td><td>Manaus</td><td>AM</td><td>POLYGON ((-60.01 -3.00, ...))</td></tr>
+          <tr><td>1500800</td><td>Belém</td><td>PA</td><td>POLYGON ((-48.50 -1.45, ...))</td></tr>
+          <tr><td>1100205</td><td>Porto Velho</td><td>RO</td><td>POLYGON ((-63.90 -8.76, ...))</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Retorno de <code>get_municipio(gdf, lat, lon)</code></h3>
+    <div class="output">
+<span class="out-key">{</span>
+  <span class="out-label">"codarea"</span>: <span class="out-val">"1302603"</span>,   <span class="cm"># código IBGE do município</span>
+  <span class="out-label">"nome"</span>:    <span class="out-val">"Manaus"</span>,
+  <span class="out-label">"uf"</span>:      <span class="out-val">"AM"</span>
+<span class="out-key">}</span>
+    </div>
+
+    <h3>Mapeamento de biomas por UF</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>UF</th><th>Estado</th><th>Bioma</th></tr></thead>
+        <tbody>
+          <tr><td>AM, PA, RO, AC, RR, AP</td><td>Estados do núcleo amazônico</td><td class="val-ok">Amazônia</td></tr>
+          <tr><td>MT, MA</td><td>Mato Grosso, Maranhão</td><td class="val-ok">Amazônia</td></tr>
+          <tr><td>TO, GO, MG</td><td>Tocantins, Goiás, Minas Gerais</td><td class="val-med">Cerrado</td></tr>
+          <tr><td>MS</td><td>Mato Grosso do Sul</td><td class="val-med">Pantanal</td></tr>
+          <tr><td>BA, CE, PE</td><td>Bahia, Ceará, Pernambuco</td><td class="val-hi">Caatinga</td></tr>
+          <tr><td>demais</td><td>—</td><td class="val-na">Desconhecido</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <strong>Atenção:</strong> o mapeamento UF → bioma é uma aproximação. Estados como MT e MA têm áreas em múltiplos biomas. Para precisão fina, é necessário um shapefile de biomas do IBGE.
+    </div>
+
+    <h3>Como usar</h3>
+    <pre><code><span class="kw">from</span> collectors.Vegetation <span class="kw">import</span> <span class="cls">Vegetation</span>
+
+veg = <span class="cls">Vegetation</span>()
+
+<span class="cm"># baixar GeoJSON apenas na primeira vez</span>
+<span class="cm"># veg.download()</span>
+
+gdf        = veg.<span class="fn">read_geo_data</span>()
+municipio  = veg.<span class="fn">get_municipio</span>(gdf, lat=<span class="num">-3.1190</span>, lon=<span class="num">-60.0217</span>)
+bioma      = veg.<span class="fn">get_bioma</span>(municipio[<span class="str">"uf"</span>])
+
+print(municipio)  <span class="cm"># {'codarea': '1302603', 'nome': 'Manaus', 'uf': 'AM'}</span>
+print(bioma)      <span class="cm"># Amazônia</span></code></pre>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       MAIN
+  ══════════════════════════════════════════ -->
+  <section id="main">
+    <h2>⚙️ main.py <span class="badge badge-main">Orquestrador</span></h2>
+
+    <p>A função <code>coletar_dados(lat, lon)</code> é o ponto de entrada único. Ela instancia os três coletores, executa o pipeline completo e devolve um dicionário com tudo consolidado.</p>
+
+    <h3>Fluxo de execução</h3>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="step-dot" style="border-color:var(--green); color:var(--green)">1</div>
+        <div class="step-body">
+          <strong>Vegetation.read_geo_data()</strong>
+          <p>Lê o GeoJSON local e faz merge com a API de nomes do IBGE. Operação mais lenta (~5–15 s na primeira execução com internet).</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-dot" style="border-color:var(--green); color:var(--green)">2</div>
+        <div class="step-body">
+          <strong>Vegetation.get_municipio(gdf, lat, lon)</strong>
+          <p>Testa ponto-em-polígono para todos os ~5570 municípios. Retorna <code>None</code> se o ponto cair no oceano ou fora do Brasil.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-dot" style="border-color:var(--green); color:var(--green)">3</div>
+        <div class="step-body">
+          <strong>Vegetation.get_bioma(municipio["uf"])</strong>
+          <p>Lookup imediato no dicionário interno. Sem requisição.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-dot" style="border-color:var(--blue); color:var(--blue)">4</div>
+        <div class="step-body">
+          <strong>Climate.get_data(lat, lon)</strong>
+          <p>Requisição para Open-Meteo. Retorna 31 linhas de dados diários.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-dot" style="border-color:var(--accent); color:var(--accent)">5</div>
+        <div class="step-body">
+          <strong>Firms.get_focos(dias=5)</strong>
+          <p>Requisição para NASA FIRMS. Quantidade de linhas depende da atividade de incêndios no período.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Estrutura do dicionário retornado</h3>
+    <pre><code><span class="kw">{</span>
+  <span class="str">"municipio"</span>: <span class="kw">{</span>
+      <span class="str">"codarea"</span>: <span class="str">"1302603"</span>,
+      <span class="str">"nome"</span>:    <span class="str">"Manaus"</span>,
+      <span class="str">"uf"</span>:      <span class="str">"AM"</span>
+  <span class="kw">}</span>,
+  <span class="str">"bioma"</span>:    <span class="str">"Amazônia"</span>,
+  <span class="str">"clima"</span>:    <span class="cm"># pd.DataFrame — 31 linhas × 4 colunas</span>,
+  <span class="str">"focos"</span>:    <span class="cm"># pd.DataFrame — N linhas × 14 colunas (NASA FIRMS)</span>
+<span class="kw">}</span></code></pre>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       EXEMPLO COMPLETO
+  ══════════════════════════════════════════ -->
+  <section id="exemplo-completo">
+    <h2>🧪 Exemplo Completo <span class="badge badge-main">Output real</span></h2>
+
+    <p>Coordenada de exemplo: <strong>Manaus, AM</strong> — lat <code>-3.1190</code>, lon <code>-60.0217</code></p>
+
+    <h3>Rodando</h3>
+    <pre><code><span class="cm"># no terminal, dentro de src/</span>
+python main.py</code></pre>
+
+    <h3>Saída esperada no terminal</h3>
+    <div class="output">
+<span class="out-label">Carregando dados geográficos...</span>
+<span class="out-label">Coletando dados climáticos...</span>
+<span class="out-label">Coletando focos de incêndio...</span>
+
+<span class="out-label">Município :</span> <span class="out-val">Manaus / AM (código 1302603)</span>
+<span class="out-label">Bioma     :</span> <span class="out-val">Amazônia</span>
+
+<span class="out-label">Clima (últimos 30 dias):</span>
+<span class="out-key">        date  temperature_max  precipitation  windspeed</span>
+<span class="out-val">  2025-04-05            29.4           18.2       12.3</span>
+<span class="out-val">  2025-04-06            31.0            5.6       14.1</span>
+<span class="out-val">  2025-04-07            33.8            0.0       20.4</span>
+<span class="out-val">  ...</span>
+<span class="out-val">  2025-05-05            28.9           31.4        9.1</span>
+
+<span class="out-label">Focos de incêndio na Amazônia:</span> <span class="out-hi">1247 registros</span>
+<span class="out-key">   latitude  longitude  bright_ti4   frp confidence   acq_date</span>
+<span class="out-val">    -3.4521   -62.1038       412.3  87.4          h 2025-05-03</span>
+<span class="out-val">    -4.8801   -55.2314       356.7  23.1          n 2025-05-03</span>
+<span class="out-val">    ...</span>
+    </div>
+
+    <h3>Usando o retorno em código</h3>
+    <pre><code><span class="kw">import</span> sys
+sys.path.insert(<span class="num">0</span>, <span class="str">"src"</span>)
+
+<span class="kw">from</span> main <span class="kw">import</span> <span class="fn">coletar_dados</span>
+
+dados = <span class="fn">coletar_dados</span>(lat=<span class="num">-3.1190</span>, lon=<span class="num">-60.0217</span>, dias_focos=<span class="num">7</span>)
+
+<span class="cm"># município identificado</span>
+print(dados[<span class="str">"municipio"</span>][<span class="str">"nome"</span>])     <span class="cm"># Manaus</span>
+print(dados[<span class="str">"bioma"</span>])                  <span class="cm"># Amazônia</span>
+
+<span class="cm"># quantos dias sem chuva?</span>
+df = dados[<span class="str">"clima"</span>]
+print((df[<span class="str">"precipitation"</span>] == <span class="num">0</span>).sum())
+
+<span class="cm"># focos de alta confiança e alto FRP</span>
+focos = dados[<span class="str">"focos"</span>]
+criticos = focos[(focos[<span class="str">"confidence"</span>] == <span class="str">"h"</span>) & (focos[<span class="str">"frp"</span>] > <span class="num">50</span>)]
+print(f<span class="str">"Focos críticos: {len(criticos)}"</span>)</code></pre>
+  </section>
+
+</div>
+
+<footer>
+  FireRisk &nbsp;·&nbsp; Fontes: Open-Meteo, NASA FIRMS VIIRS/Suomi NPP, IBGE Malhas &amp; Localidades
+</footer>
+
+</body>
+</html>
