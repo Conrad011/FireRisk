@@ -12,8 +12,7 @@ class RiskProcessor:
         df["total_focos"] = df["total_focos"].fillna(0)
         df["teve_foco"] = (df["total_focos"] > 0).astype(int)
 
-        # índice de risco
-        peso_bioma = {"Amazônia": 1.5, "Cerrado": 1.2, "Caatinga": 1.3}
+        peso_bioma = {"Amazônia": 1.5, "Cerrado": 1.2, "Caatinga": 1.3}# índice de risco
         peso = peso_bioma.get(bioma, 1.0)
 
         score_focos = min(len(firms_df) / 100, 1.0)
