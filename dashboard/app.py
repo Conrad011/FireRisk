@@ -24,8 +24,8 @@ with st.sidebar:
     st.header("Parâmetros")
     lat = st.number_input("Latitude", value=-3.1190, format="%.4f", step=0.001)
     lon = st.number_input("Longitude", value=-60.0217, format="%.4f", step=0.001)
-    dias = st.slider("Janela FIRMS (dias)", min_value=1, max_value=5, value=5)
-    analisar = st.button("🔍 Analisar", type="primary", use_container_width=True)
+    days = st.slider("Janela FIRMS (dias)", min_value=1, max_value=5, value=5)
+    analyze = st.button("🔍 Analisar", type="primary", use_container_width=True)
     st.divider()
     st.caption("Coordenada padrão: Manaus, AM")
 
@@ -39,28 +39,28 @@ def load_climate(lat, lon):
     return Climate().get_data(lat, lon)
 
 @st.cache_data(show_spinner="Buscando focos (NASA FIRMS)...")
-def load_firms(dias):
-    return Firms().get_focos(dias=dias)
+def load_firms(days):
+    return Firms().get_fires(days=days)
 
 # ── Execução da análise ───────────────────────────────────────────────────────
-if analisar or "resumo" not in st.session_state:
+if analyze or "summary" not in st.session_state:
     try:
         gdf = load_geo()
         veg = Vegetation()
-        municipio = veg.get_municipio(gdf, lat, lon)
+        municipality = veg.get_municipality(gdf, lat, lon)
 
-        if municipio is None:
+        if municipality is None:
             st.error(f"Nenhum município encontrado para ({lat}, {lon}). Verifique as coordenadas.")
             st.stop()
 
-        bioma = veg.get_bioma(municipio["uf"])
-        df_clima = load_climate(lat, lon)
-        df_focos = load_firms(dias)
-        df, resumo = RiskProcessor.process(df_clima, df_focos, bioma)
+        biome = veg.get_biome(municipality["uf"])
+        df_climate = load_climate(lat, lon)
+        df_fires = load_firms(days)
+        df, summary = RiskProcessor.process(df_climate, df_fires, biome)
 
         st.session_state.update({
-            "resumo": resumo, "municipio": municipio,
-            "df_clima": df_clima, "df_focos": df_focos,
+            "summary": summary, "municipality": municipality,
+            "df_climate": df_climate, "df_fires": df_fires,
             "df": df, "gdf": gdf, "lat": lat, "lon": lon,
         })
 
@@ -72,30 +72,30 @@ if analisar or "resumo" not in st.session_state:
         st.error(f"Erro ao carregar dados: {e}")
         st.stop()
 
-if "resumo" not in st.session_state:
+if "summary" not in st.session_state:
     st.info("Configure os parâmetros na barra lateral e clique em **Analisar**.")
     st.stop()
 
-resumo    = st.session_state["resumo"]
-municipio = st.session_state["municipio"]
-df_clima  = st.session_state["df_clima"]
-df_focos  = st.session_state["df_focos"]
-df        = st.session_state["df"]
-gdf       = st.session_state["gdf"]
-lat_used  = st.session_state["lat"]
-lon_used  = st.session_state["lon"]
+summary      = st.session_state["summary"]
+municipality = st.session_state["municipality"]
+df_climate   = st.session_state["df_climate"]
+df_fires     = st.session_state["df_fires"]
+df           = st.session_state["df"]
+gdf          = st.session_state["gdf"]
+lat_used     = st.session_state["lat"]
+lon_used     = st.session_state["lon"]
 
 # ── Métricas ──────────────────────────────────────────────────────────────────
-indice = resumo["indice_risco"]
-risco_label = "Alto" if indice >= 6 else "Moderado" if indice >= 3 else "Baixo"
-risco_color = "inverse" if indice >= 6 else "off" if indice >= 3 else "normal"
+risk_index = summary["risk_index"]
+risk_label = "Alto" if risk_index >= 6 else "Moderado" if risk_index >= 3 else "Baixo"
+risk_color = "inverse" if risk_index >= 6 else "off" if risk_index >= 3 else "normal"
 
 c1, c2, c3, c4, c5 = st.columns(5)
-c1.metric("Município", municipio["nome"])
-c2.metric("UF / Bioma", f"{municipio['uf']} · {resumo['bioma']}")
-c3.metric("Índice de Risco", f"{indice} / 10", delta=risco_label, delta_color=risco_color)
-c4.metric("Total de Focos", resumo["total_focos"])
-c5.metric("Temp. Máx. Média", f"{resumo['temp_media']} °C")
+c1.metric("Município", municipality["nome"])
+c2.metric("UF / Bioma", f"{municipality['uf']} · {summary['biome']}")
+c3.metric("Índice de Risco", f"{risk_index} / 10", delta=risk_label, delta_color=risk_color)
+c4.metric("Total de Focos", summary["total_fires"])
+c5.metric("Temp. Máx. Média", f"{summary['avg_temp']} °C")
 
 st.divider()
 
@@ -108,10 +108,10 @@ with col_map:
     m = folium.Map(location=[lat_used, lon_used], zoom_start=6, tiles="CartoDB dark_matter")
 
     # Polígono do município
-    mun_gdf = gdf[gdf["codarea"] == municipio["codarea"]]
-    if not mun_gdf.empty:
+    municipality_gdf = gdf[gdf["codarea"] == municipality["codarea"]]
+    if not municipality_gdf.empty:
         folium.GeoJson(
-            mun_gdf.__geo_interface__,
+            municipality_gdf.__geo_interface__,
             style_function=lambda _: {
                 "fillColor": "#ff6b00", "color": "#ff9933",
                 "weight": 2, "fillOpacity": 0.15,
@@ -119,10 +119,10 @@ with col_map:
         ).add_to(m)
 
     # Heatmap dos focos ponderado por FRP
-    if not df_focos.empty and "latitude" in df_focos.columns:
+    if not df_fires.empty and "latitude" in df_fires.columns:
         heat_data = [
             [row["latitude"], row["longitude"], max(float(row.get("frp", 1)), 1)]
-            for _, row in df_focos.iterrows()
+            for _, row in df_fires.iterrows()
         ]
         HeatMap(
             heat_data, radius=12, blur=8, min_opacity=0.4,
@@ -132,7 +132,7 @@ with col_map:
     # Marcador do ponto analisado
     folium.Marker(
         location=[lat_used, lon_used],
-        popup=f"{municipio['nome']} ({lat_used:.4f}, {lon_used:.4f})",
+        popup=f"{municipality['nome']} ({lat_used:.4f}, {lon_used:.4f})",
         tooltip="Ponto analisado",
         icon=folium.Icon(color="red", icon="fire", prefix="fa"),
     ).add_to(m)
@@ -142,10 +142,10 @@ with col_map:
 with col_gauge:
     st.subheader("Índice de Risco")
 
-    bar_color = "#ff4444" if indice >= 6 else "#ffaa00" if indice >= 3 else "#44cc44"
+    bar_color = "#ff4444" if risk_index >= 6 else "#ffaa00" if risk_index >= 3 else "#44cc44"
     fig_gauge = go.Figure(go.Indicator(
         mode="gauge+number",
-        value=indice,
+        value=risk_index,
         number={"suffix": " / 10", "font": {"size": 28}},
         gauge={
             "axis": {"range": [0, 10], "tickwidth": 1, "tickcolor": "white"},
@@ -163,31 +163,31 @@ with col_gauge:
     )
     st.plotly_chart(fig_gauge, use_container_width=True)
 
-    peso_bioma = {"Amazônia": 1.5, "Cerrado": 1.2, "Caatinga": 1.3}
-    peso = peso_bioma.get(resumo["bioma"], 1.0)
-    st.info(f"**Bioma:** {resumo['bioma']}  \n**Multiplicador de risco:** {peso}×")
+    biome_weight = {"Amazônia": 1.5, "Cerrado": 1.2, "Caatinga": 1.3}
+    weight = biome_weight.get(summary["biome"], 1.0)
+    st.info(f"**Bioma:** {summary['biome']}  \n**Multiplicador de risco:** {weight}×")
 
-    if "confidence" in df_focos.columns and not df_focos.empty:
-        conf_map = {"h": "Alta", "n": "Normal", "l": "Baixa"}
+    if "confidence" in df_fires.columns and not df_fires.empty:
+        confidence_map = {"h": "Alta", "n": "Normal", "l": "Baixa"}
         st.caption("Confiança dos focos detectados:")
-        for conf, count in df_focos["confidence"].value_counts().items():
-            st.caption(f"  • {conf_map.get(conf, conf)}: **{count}**")
+        for conf, count in df_fires["confidence"].value_counts().items():
+            st.caption(f"  • {confidence_map.get(conf, conf)}: **{count}**")
 
 st.divider()
 
 # ── Gráficos climáticos ───────────────────────────────────────────────────────
 st.subheader("Série Climática — Últimos 30 dias")
-col_clima, col_focos = st.columns(2)
+col_climate, col_fires = st.columns(2)
 
-with col_clima:
+with col_climate:
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(go.Scatter(
-        x=df_clima["date"], y=df_clima["temperature_max"],
+        x=df_climate["date"], y=df_climate["temperature_max"],
         name="Temp. Máx (°C)", line=dict(color="#ff4444", width=2),
         fill="tozeroy", fillcolor="rgba(255,68,68,0.1)",
     ), secondary_y=False)
     fig.add_trace(go.Bar(
-        x=df_clima["date"], y=df_clima["precipitation"],
+        x=df_climate["date"], y=df_climate["precipitation"],
         name="Chuva (mm)", marker_color="rgba(68,136,255,0.5)",
     ), secondary_y=True)
     fig.update_layout(
@@ -201,12 +201,12 @@ with col_clima:
     fig.update_yaxes(title_text="mm", secondary_y=True)
     st.plotly_chart(fig, use_container_width=True)
 
-with col_focos:
-    focos_dia = df.groupby("date")["total_focos"].sum().reset_index()
+with col_fires:
+    fires_per_day = df.groupby("date")["total_fires"].sum().reset_index()
     fig2 = go.Figure(go.Bar(
-        x=focos_dia["date"],
-        y=focos_dia["total_focos"],
-        marker_color=["#ff4444" if v > 0 else "#444" for v in focos_dia["total_focos"]],
+        x=fires_per_day["date"],
+        y=fires_per_day["total_fires"],
+        marker_color=["#ff4444" if v > 0 else "#444" for v in fires_per_day["total_fires"]],
     ))
     fig2.update_layout(
         title="Focos por Dia (Amazônia Legal)",
@@ -221,5 +221,5 @@ with col_focos:
 # ── Tabela de focos ───────────────────────────────────────────────────────────
 with st.expander("Ver dados brutos dos focos (NASA FIRMS)"):
     cols = [c for c in ["acq_date", "latitude", "longitude", "frp", "confidence", "daynight", "bright_ti4"]
-            if c in df_focos.columns]
-    st.dataframe(df_focos[cols].sort_values("acq_date", ascending=False), use_container_width=True)
+            if c in df_fires.columns]
+    st.dataframe(df_fires[cols].sort_values("acq_date", ascending=False), use_container_width=True)

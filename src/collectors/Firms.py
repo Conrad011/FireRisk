@@ -6,18 +6,18 @@ from io import StringIO
 
 class Firms:
 
-    _BBOX_AMAZONIA = "-74,-18,-44,5"
+    _BBOX_AMAZON = "-74,-18,-44,5"
 
     def __init__(self):
         self._api_key = os.getenv("NASA_FIRMS_KEY")
         if not self._api_key:
             raise EnvironmentError("Variável de ambiente NASA_FIRMS_KEY não definida.")
 
-    def get_focos(self, dias=5):
+    def get_fires(self, days=5):
         url = (
             f"https://firms.modaps.eosdis.nasa.gov/api/area/csv/"
             f"{self._api_key}/VIIRS_SNPP_NRT/"
-            f"{self._BBOX_AMAZONIA}/{dias}"
+            f"{self._BBOX_AMAZON}/{days}"
         )
         response = requests.get(url)
         if response.status_code != 200:
