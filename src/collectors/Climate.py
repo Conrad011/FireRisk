@@ -16,10 +16,10 @@ class Climate:
 
     def _to_dataframe(self, daily):
         df = pd.DataFrame({
-            "date":            daily["time"],
+            "date": daily["time"],
             "temperature_max": daily["temperature_2m_max"],
-            "precipitation":   daily["precipitation_sum"],
-            "windspeed":       daily["windspeed_10m_max"],
+            "precipitation": daily["precipitation_sum"],
+            "windspeed": daily["windspeed_10m_max"],
         })
 
         df["date"] = pd.to_datetime(df["date"])
